@@ -1,0 +1,303 @@
+#######Enable FORM drawing
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+
+
+
+###Form baseline
+$form = New-Object System.Windows.Forms.Form
+$form.Text = 'SYSLOG SERVER SEARCH TOOL'
+$form.Size = New-Object System.Drawing.Size(500,500)
+$form.StartPosition = 'CenterScreen'
+
+
+	##Search button
+	$OKButton = New-Object System.Windows.Forms.Button
+	$OKButton.Location = New-Object System.Drawing.Point(300,425)
+	$OKButton.Size = New-Object System.Drawing.Size(75,23)
+	$OKButton.Text = 'Search'
+	$OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+	$form.AcceptButton = $OKButton
+	$form.controls.add($OKButton)
+
+	##############Search title holder
+	$textLabel1 = New-Object “System.Windows.Forms.Label”;
+	$textLabel1.Left = 10;
+	$textLabel1.Top = 120;
+	$textLabel1.Text = 'Please enter the search string'
+	$textLabel1.Width = 200;
+	$form.controls.add($textLabel1)
+
+	############Search input field
+	$textBox1 = New-Object “System.Windows.Forms.TextBox”;
+	$textBox1.Left = 10;
+	$textBox1.Top = 145;
+	$textBox1.width = 200;
+	$form.controls.add($textBox1)
+
+	############Cancel button
+	$CancelButton = New-Object System.Windows.Forms.Button
+	$CancelButton.Location = New-Object System.Drawing.Point(385,425)
+	$CancelButton.Size = New-Object System.Drawing.Size(75,23)
+	$CancelButton.Text = 'Cancel'
+	$CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+	$form.CancelButton = $CancelButton
+	$form.controls.add($CancelButton)
+
+
+
+####LIST AREA FIELD
+
+	$label = New-Object System.Windows.Forms.Label
+	$label.Location = New-Object System.Drawing.Point(10,20)
+	$label.Size = New-Object System.Drawing.Size(280,20)
+	$label.Text = 'Please Select a SYSLOG Server:'
+	$form.controls.add($label)
+
+		$listBox = New-Object System.Windows.Forms.ListBox
+		$listBox.Location = New-Object System.Drawing.Point(10,40)
+		$listBox.Size = New-Object System.Drawing.Size(260,20)
+		$listBox.Height = 80
+		$form.controls.add($listBox)
+
+
+			## UPDATE WITH SERVER INFO
+
+                [void] $listBox.Items.Add('Select Server')
+                [void] $listBox.Items.Add('\\PATH1\DIR\')
+                [void] $listBox.Items.Add('\\PATH2\DIR\')
+                [void] $listBox.Items.Add('\\PATH3\DIR\')
+                [void] $listBox.Items.Add('\\PATH4\DIR\')
+                [void] $listBox.Items.Add('\\PATH5\DIR\')
+                [void] $listBox.Items.Add('\\PATH6\DIR\')
+                [void] $listBox.Items.Add('\\PATH7\DIR\')
+                [void] $listBox.Items.Add('\\PATH8\DIR\')
+                [void] $listBox.Items.Add('\\PATH9\DIR\')
+
+                $listBox.SetSelected(7,$true)
+    
+#####RADIO BUTTON FIELDS
+
+
+	##############Radio title holder
+	$RadioText = New-Object “System.Windows.Forms.Label”;
+	$RadioText.Left = 10;
+	$RadioText.Top = 185;
+	$RadioText.Text = 'Select Time Frame'
+	$RadioText.Width = 200;
+	$form.controls.add($RadioText)
+	
+		$ButtonR1 = New-Object System.Windows.Forms.RadioButton
+		$ButtonR1.Location = '35,210'
+		$ButtonR1.size = '100,20'
+		$ButtonR1.Checked = $true 
+		$ButtonR1.Text = "Today"
+		$form.controls.add($ButtonR1)
+ 
+ 		$ButtonR2 = New-Object System.Windows.Forms.RadioButton
+		$ButtonR2.Location = '35,235'
+		$ButtonR2.size = '100,20'
+		$ButtonR2.Checked = $false
+		$ButtonR2.Text = "Last 30 Days"
+		$form.controls.add($ButtonR2)
+		
+		$ButtonR3 = New-Object System.Windows.Forms.RadioButton
+		$ButtonR3.Location = '35,260'
+		$ButtonR3.size = '100,20'
+		$ButtonR3.Checked = $false
+		$ButtonR3.Text = "Over 30 Days"
+		$form.controls.add($ButtonR3)
+
+
+###Selection Groupbox
+
+$groupBox = New-Object System.Windows.Forms.GroupBox 
+$groupBox.Location = New-Object System.Drawing.Size(285,20) #location of the group box (px) in relation to the primary window's edges (length, height)
+$groupBox.size = New-Object System.Drawing.Size(170,375) #the size in px of the group box (length, height)
+$groupBox.text = "ADN Selection:" #labeling the box
+$form.controls.add($groupBox)
+
+############## ADN RADIO BUTTONS
+	
+
+		$blank = New-Object System.Windows.Forms.RadioButton
+		$blank.Location = '15,25'
+		$blank.size = '100,20'
+		$blank.Checked = $true
+		$blank.Text = "All"
+		$groupBox.Controls.Add($blank)
+
+		$DIR1 = New-Object System.Windows.Forms.RadioButton
+		$DIR1.Location = '15,50'
+		$DIR1.size = '100,20'
+		$DIR1.Checked = $false 
+		$DIR1.Text = "SUB-DIR 1"
+		$groupBox.Controls.Add($DIR1)
+ 
+		$DIR2 = New-Object System.Windows.Forms.RadioButton
+		$DIR2.Location = '15,75'
+		$DIR2.size = '100,20'
+		$DIR2.Checked = $false 
+		$DIR2.Text = "SUB-DIR 2"
+		$groupBox.Controls.Add($DIR2)
+		
+		$DIR3 = New-Object System.Windows.Forms.RadioButton
+		$DIR3.Location = '15,100'
+		$DIR3.size = '100,20'
+		$DIR3.Checked = $false 
+		$DIR3.Text = "SUB-DIR 3"
+		$groupBox.Controls.Add($DIR3)
+
+		$DIR4 = New-Object System.Windows.Forms.RadioButton
+		$DIR4.Location = '15,125'
+		$DIR4.size = '100,20'
+		$DIR4.Checked = $false 
+		$DIR4.Text = "SUB-DIR 4"
+		$groupBox.Controls.Add($DIR4)
+ 
+		$DIR5 = New-Object System.Windows.Forms.RadioButton
+		$DIR5.Location = '15,150'
+		$DIR5.size = '100,20'
+		$DIR5.Checked = $false 
+		$DIR5.Text = "SUB-DIR 5"
+		$groupBox.Controls.Add($DIR5)
+		
+		$DIR6 = New-Object System.Windows.Forms.RadioButton
+		$DIR6.Location = '15,175'
+		$DIR6.size = '100,20'
+		$DIR6.Checked = $false 
+		$DIR6.Text = "SUB-DIR 6"
+		$groupBox.Controls.Add($DIR6)
+
+		$DIR7 = New-Object System.Windows.Forms.RadioButton
+		$DIR7.Location = '15,200'
+		$DIR7.size = '100,20'
+		$DIR7.Checked = $false 
+		$DIR7.Text = "SUB-DIR 7"
+		$groupBox.Controls.Add($DIR7)
+ 
+		$DIR8 = New-Object System.Windows.Forms.RadioButton
+		$DIR8.Location = '15,225'
+		$DIR8.size = '100,20'
+		$DIR8.Checked = $false 
+		$DIR8.Text = "SUB-DIR 8"
+		$groupBox.Controls.Add($DIR8)
+		
+		$DIR9 = New-Object System.Windows.Forms.RadioButton
+		$DIR9.Location = '15,250'
+		$DIR9.size = '100,20'
+		$DIR9.Checked = $false 
+		$DIR9.Text = "SUB-DIR 9"
+		$groupBox.Controls.Add($DIR9)
+
+		$DIR10 = New-Object System.Windows.Forms.RadioButton
+		$DIR10.Location = '15,275'
+		$DIR10.size = '100,20'
+		$DIR10.Checked = $false 
+		$DIR10.Text = "SUB-DIR 10"
+		$groupBox.Controls.Add($DIR10)
+
+		$DIR11 = New-Object System.Windows.Forms.RadioButton
+		$DIR11.Location = '15,300'
+		$DIR11.size = '100,20'
+		$DIR11.Checked = $false 
+		$DIR11.Text = "SUB-DIR 11"
+		$groupBox.Controls.Add($DIR11)
+
+		$DIR12 = New-Object System.Windows.Forms.RadioButton
+		$DIR12.Location = '15,325'
+		$DIR12.size = '100,20'
+		$DIR12.Checked = $false 
+		$DIR12.Text = "SUB-DIR 12"
+		$groupBox.Controls.Add($DIR12)
+
+		$SITE2 = New-Object System.Windows.Forms.RadioButton
+		$SITE2.Location = '15,350'
+		$SITE2.size = '100,20'
+		$SITE2.Checked = $false 
+		$SITE2.Text = "SITE 2"
+		$groupBox.Controls.Add($SITE2)
+
+    
+    
+############ Add all the Form controls on one line 
+
+$form.add_shown({$form.activate()})
+$form.Topmost = $true
+$result = $form.ShowDialog()
+
+
+###SEARCH CRITERIA CONDITIONAL CHECKS AND FORMATTING
+
+if ($result -eq [System.Windows.Forms.DialogResult]::OK)
+{
+    $x = $listBox.SelectedItem
+##########SUB-DIRECTORY-CONDITIONALS
+
+    if ($DIR1.Checked)
+    {$x ='\\PATH1\DIR\1\'}
+
+    elseif ($DIR2.Checked)
+    {$x ='\\PATH1\DIR\2\'}
+
+    elseif ($DIR3.Checked)
+    {$x ='\\PATH1\DIR\3\'}
+
+    elseif ($DIR4.Checked)
+    {$x ='\\PATH1\DIR\4\'}
+
+    elseif ($DIR5.Checked)
+    {$x ='\\PATH1\DIR\5\'}
+
+    elseif ($DIR6.Checked)
+    {$x ='\\PATH1\DIR\6\'}
+
+    elseif ($DIR7.Checked)
+    {$x ='\\PATH1\DIR\7\'}
+
+    elseif ($DIR8.Checked)
+    {$x ='\\PATH1\DIR\8\'}
+
+    elseif ($DIR9.Checked)
+    {$x ='\\PATH1\DIR\9\'}
+
+    elseif ($DIR10.Checked)
+    {$x ='\\PATH1\DIR\10\'}
+
+    elseif ($DIR11.Checked)
+    {$x ='\\PATH1\DIR\11\'}
+
+    elseif ($DIR12.Checked)
+    {$x ='\\PATH1\DIR\12\'}
+
+    elseif ($SITE2.Checked)
+    {$x ='\\PATH1\DIR\SITE2'}
+
+    else 
+    {$x ='\\PATH1\DIR'}
+
+
+
+	###SERVER SELECT EXCEPTION HANDLE
+
+	while ($listBox.SelectedItem.Equals('Select Server'))
+		{ $msgBoxInput0 = [System.Windows.MessageBox]::Show('No server selected. Please start the script again and select a server.','PICK A SERVER!')
+		return(0)}
+
+    ###STRING SELECT EXCEPTION HANDLE
+
+	while ($textBox1.Text.Length -le 3)
+		{ $msgBoxInput0 = [System.Windows.MessageBox]::Show('Please enter a more specific search string of four or more characters.','Server error')
+		return(0)}
+
+    ###TIMEFRAME CONDITIONALS AND STRING AGGREGATION
+
+		if ($ButtonR1.Checked)
+			{Get-ChildItem -Path $x -Recurse -Include *.txt | Where-Object{$_.LastWriteTime -gt (get-date).AddHours(-24)} | Select-String -Pattern $textBox1.Text | select-object -last 10 }
+			
+		elseif ($ButtonR2.Checked)
+			{Get-ChildItem -Path $x -Recurse -Include *.txt |  Where-Object{$_.LastWriteTime -ge (Get-Date).AddDays(-30)} |  Select-String -Pattern $textBox1.Text | select-object -last 10 }
+			
+		else
+			{Get-ChildItem -Path $x -Recurse -Include *.txt |  Where-Object{$_.LastWriteTime -lt (Get-Date).AddDays(-30)} | Select-String -Pattern $textBox1.Text | select-object -last 10 }
+}
