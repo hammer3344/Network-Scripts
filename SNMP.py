@@ -17,7 +17,7 @@ GET_PRIV = getpass.getpass('Enter Priv Passphrase: ')
 
 def get_info_snmp(host, oid):
     for (errorIndication,errorStatus,errorIndex,varBinds) in nextCmd(SnmpEngine(),
-    UsmUserData('PYTHON_USR', authKey=GET_AUTH, privKey=GET_PRIV, authProtocol=usmHMACSHAAuthProtocol, privProtocol=usmAesCfb192Protocol),
+    UsmUserData('PYTHON_USR', authKey= GET_AUTH, privKey= GET_PRIV, authProtocol=usmHMACSHAAuthProtocol, privProtocol=usmAesCfb192Protocol),
     UdpTransportTarget((host, 161) , timeout = 3.0 , retries= 2),
     ContextData(),
     ObjectType(ObjectIdentity(oid)), lookupMib=False, lexicographicMode=False):
@@ -30,9 +30,8 @@ def get_info_snmp(host, oid):
 
         else:
             for varBind in varBinds:
-                snmp_output = ('%s = %s' % varBind)
-                snmp_output.strip("1.3.6.1.4.1.9.2.1.3.0 =")
-                print(' = '.join([x.prettyPrint() for x in varBind]))
+                output = (str('%s = %s' % varBind))
+                return output
 
 
 Addr_File = '/home/steve/Documents/Address.csv'
@@ -45,8 +44,22 @@ with open(Addr_File) as read_obj:
         raw_output = str(row)[1:-1]
         # Strip quotation from list obbject
         ipAddr = raw_output.strip("'")
-        # Call list objects
-        get_info_snmp(ipAddr, '1.3.6.1.4.1.9.2.1.3')
-        #get_info_snmp(ipAddr, '1.3.6.1.2.1.1.1')
 
+        hostname_mib = get_info_snmp(ipAddr, '1.3.6.1.4.1.9.2.1.3')
+        hostname_output = hostname_mib.replace('1.3.6.1.4.1.9.2.1.3.0 = ', '')
+        output_list = []
+        output_list.append(hostname_output)
+        output_list.append(ipAddr)
 
+        version_mib = get_info_snmp(ipAddr, '1.3.6.1.2.1.1.1')
+        version_output = version_mib.replace('1.3.6.1.2.1.1.1.0 = ', '')
+        output_list.append(version_output)
+        print(output_list)
+        csv_write = open('/home/steve/Documents/output.csv', 'a', newline='')
+        with csv_write:
+            write = csv.writer(csv_write)
+            write.writerow(output_list)
+            csv_write.close()
+
+# TODO:
+# Update parsing for version_output (trim excess)
