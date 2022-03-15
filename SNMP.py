@@ -12,13 +12,12 @@ from pysnmp.smi.rfc1902 import ObjectIdentity
 GET_AUTH = getpass.getpass('Enter Auth Passphrase: ')
 GET_PRIV = getpass.getpass('Enter Priv Passphrase: ')
 
-# SNMP Query Function
 
-
+#SNMP Function
 def get_info_snmp(host, oid):
     for (errorIndication,errorStatus,errorIndex,varBinds) in nextCmd(SnmpEngine(),
-    UsmUserData('PYTHON_USR', authKey= GET_AUTH, privKey= GET_PRIV, authProtocol=usmHMACSHAAuthProtocol, privProtocol=usmAesCfb192Protocol),
-    UdpTransportTarget((host, 161) , timeout = 3.0 , retries= 2),
+    UsmUserData('PYTHON_USR', authKey=GET_AUTH, privKey=GET_PRIV, authProtocol=usmHMACSHAAuthProtocol, privProtocol=usmAesCfb192Protocol),
+    UdpTransportTarget((host, 161), timeout=3.0, retries=2),
     ContextData(),
     ObjectType(ObjectIdentity(oid)), lookupMib=False, lexicographicMode=False):
 
@@ -34,8 +33,10 @@ def get_info_snmp(host, oid):
                 return output
 
 
+# Define address list file path
 Addr_File = '/home/steve/Documents/Address.csv'
 
+# MIB request and report writer
 with open(Addr_File) as read_obj:
     datareader = csv.reader(read_obj)
 
@@ -45,21 +46,27 @@ with open(Addr_File) as read_obj:
         # Strip quotation from list obbject
         ipAddr = raw_output.strip("'")
 
+        # Hostname MIB + output processing
         hostname_mib = get_info_snmp(ipAddr, '1.3.6.1.4.1.9.2.1.3')
         hostname_output = hostname_mib.replace('1.3.6.1.4.1.9.2.1.3.0 = ', '')
         output_list = []
         output_list.append(hostname_output)
         output_list.append(ipAddr)
 
+        # Version MIB + output processing
         version_mib = get_info_snmp(ipAddr, '1.3.6.1.2.1.1.1')
-        version_output = version_mib.replace('1.3.6.1.2.1.1.1.0 = ', '')
-        output_list.append(version_output)
-        print(output_list)
+        version_match = re.findall('Cisco.+', version_mib)
+        version_clean = str(version_match)[1:-1]
+        version_strip = version_clean.strip("'")
+        version_list = version_strip.split(', ')
+        final_list = output_list + version_list
+
+        print(final_list)
+
+        #Write CSV File
         csv_write = open('/home/steve/Documents/output.csv', 'a', newline='')
         with csv_write:
             write = csv.writer(csv_write)
-            write.writerow(output_list)
+            write.writerow(final_list)
             csv_write.close()
 
-# TODO:
-# Update parsing for version_output (trim excess)
