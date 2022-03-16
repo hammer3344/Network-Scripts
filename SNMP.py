@@ -14,7 +14,7 @@ GET_AUTH = getpass.getpass('Enter Auth Passphrase: ')
 GET_PRIV = getpass.getpass('Enter Priv Passphrase: ')
 
 
-#SNMP Function
+# SNMP Function
 def get_info_snmp(host, oid):
     for (errorIndication,errorStatus,errorIndex,varBinds) in nextCmd(SnmpEngine(),
     UsmUserData(GET_USER, authKey=GET_AUTH, privKey=GET_PRIV, authProtocol=usmHMACSHAAuthProtocol, privProtocol=usmAesCfb192Protocol),
@@ -44,7 +44,7 @@ with open(Addr_File) as read_obj:
     for row in datareader:
         # Strip brackets from list object
         raw_output = str(row)[1:-1]
-        # Strip quotation from list obbject
+        # Strip quotation from list object
         ipAddr = raw_output.strip("'")
 
         # Hostname MIB + output processing
@@ -59,7 +59,6 @@ with open(Addr_File) as read_obj:
         serial_output = serial_mib.replace('1.3.6.1.2.1.47.1.1.1.1.11.1 = ', '')
         output_list.append(serial_output)
 
-
         # Version MIB + output processing
         version_mib = get_info_snmp(ipAddr, '1.3.6.1.2.1.1.1')
         version_match = re.findall('Cisco.+', version_mib)
@@ -68,7 +67,7 @@ with open(Addr_File) as read_obj:
         version_list = version_strip.split(', ')
         final_list = output_list + version_list
 
-        #Write CSV File
+        # Write CSV File
         csv_write = open('/home/steve/Documents/output.csv', 'a', newline='')
         with csv_write:
             write = csv.writer(csv_write)
