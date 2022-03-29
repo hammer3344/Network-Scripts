@@ -5,6 +5,7 @@ from tkinter import filedialog
 import sys
 import csv
 import re
+
 from pysnmp.hlapi import *
 from pysnmp.smi.rfc1902 import ObjectIdentity
 
@@ -50,18 +51,17 @@ class NetReport:
         self.report_g1.rowconfigure(0, weight=1)
         self.report_g1.columnconfigure(0, weight=1)
 
-        self.reports_c1 = Checkbutton(self.report_g1, text='Hostname', onvalue=1, offvalue=0)
+        self.reports_c1 = Checkbutton(self.report_g1, text='Hostname', onvalue=True, offvalue=False)
         self.reports_c1.grid(row=0, column=0, padx=5, pady=2, sticky=W)
 
-        self.reports_c2 = Checkbutton(self.report_g1, text='IP Address', onvalue=1, offvalue=0)
+        self.reports_c2 = Checkbutton(self.report_g1, text='IP Address', onvalue=True, offvalue=False)
         self.reports_c2.grid(row=1, column=0, padx=5, pady=2, sticky=W)
 
-        self.reports_c3 = Checkbutton(self.report_g1, text='Serial Number', onvalue=1, offvalue=0)
+        self.reports_c3 = Checkbutton(self.report_g1, text='Serial Number', onvalue=True, offvalue=False)
         self.reports_c3.grid(row=2, column=0, padx=5, pady=2, sticky=W)
 
-        self.reports_c4 = Checkbutton(self.report_g1, text='Version', onvalue=1, offvalue=0)
+        self.reports_c4 = Checkbutton(self.report_g1, text='Version', onvalue=True, offvalue=False)
         self.reports_c4.grid(row=3, column=0, padx=5, pady=2, sticky=W)
-
 
         # SNMP Credential Frame
         self.report_g2 = LabelFrame(self.report_frame, text="SNMP Credentials", padx=5, pady=5)
@@ -113,7 +113,8 @@ class NetReport:
         self.txtbox_output = Text(self.report_g4, width=50, height=1)
         self.txtbox_output.grid(row=0, column=2, sticky=E + W + N + S)
 
-        self.report_run = Button(self.report_frame, text='Run')
+        # Run or close
+        self.report_run = Button(self.report_frame, text='Run', command=self.csv_processing)
         self.report_run.grid(row=3, column=0, padx=5, pady=5, sticky=E)
 
         self.report_close = Button(self.report_frame, text='Close', command=self.report_window.destroy)
@@ -122,12 +123,13 @@ class NetReport:
         self.oid_hostname = '1.3.6.1.4.1.9.2.1.3'
         self.oid_sn = '1.3.6.1.2.1.47.1.1.1.1.11'
         self.oid_ver = '1.3.6.1.2.1.1.1'
-        
+
         self.report_window.mainloop()
 
     def report_input(self):
-        filename = filedialog.askopenfilename(parent=self.report_window, initialdir="/home/steve/Documents", title="Select source CSV", filetypes=(("CSV Files", "*.csv*"),
-        ("all files", "*.*")))
+        filename = filedialog.askopenfilename(parent=self.report_window, initialdir="/home/steve/Documents",
+                                              title="Select source CSV", filetypes=(("CSV Files", "*.csv*"),
+                                                                                    ("all files", "*.*")))
         self.path_update(filename)
 
     def path_update(self, path):
@@ -137,16 +139,27 @@ class NetReport:
         filename = filedialog.askdirectory(parent=self.report_window, initialdir="/home/steve/Documents",
                                            title="Select output path")
         self.output_update(filename)
+        self.output_file(filename)
 
     def output_update(self, path):
         self.txtbox_output.insert(END, path)
 
+    def output_file(self, file):
+        filename = file
+
     def snmp_process(self, host, oid):
 
+        #user_pre = self.snmp_usr.get("1", END)
+        #user_post = user_pre.strip("\n")
+        #auth_pre = self.snmp_sha.get("1", END)
+        #auth_post = auth_pre.strip("\n")
+
+        #priv_pre = self.snmp_aes.get("1", END)
+        #priv_post = priv_pre.strip("\n")
         # SNMP Process Generation
         for (errorIndication, errorStatus, errorIndex, varBinds) in nextCmd(SnmpEngine(),
-             UsmUserData(self.snmp_usr, authKey=self.snmp_sha, privKey=self.snmp_aes, authProtocol=usmHMACSHAAuthProtocol,
-             privProtocol=usmAesCfb192Protocol),
+             UsmUserData('PYTHON_USR', authKey='PythonSHA', privKey='PythonAES',
+             authProtocol=usmHMACSHAAuthProtocol, privProtocol=usmAesCfb192Protocol),
              UdpTransportTarget((host, 161), timeout=3.0, retries=2),
              ContextData(),
              ObjectType(ObjectIdentity(oid)), lookupMib=False, lexicographicMode=False):
@@ -160,9 +173,73 @@ class NetReport:
 
             else:
                 for varBind in varBinds:
-                    output = (str('%s = %s' % varBind))
+                    output = str('%s = %s' % varBind)
                     return output
+                    #messagebox.showinfo("SNMP Complete", "SNMP string built")
 
-    def csv_processing(self, addr_file):
-    # instantiate session
+    def csv_processing(self):
+
+        addr_pre = self.txtbox.get("1.0", END)
+        addr_file = addr_pre.strip("\n")
+
+    # MIB request and report writer
+        with open(addr_file) as read_obj:
+            datareader = csv.reader(read_obj)
+
+            for row in datareader:
+                # Strip brackets from list object
+                raw_output = str(row)[1:-1]
+                # Strip quotation from list object
+                ipaddr = raw_output.strip("'")
+
+                output_list = []
+                version_list = []
+                final_list = []
+
+            # Hostname MIB + output processing
+                while self.reports_c1:
+                    hostname_mib = self.snmp_process(ipaddr, '1.3.6.1.4.1.9.2.1.3')
+                    hostname_output = hostname_mib.replace('1.3.6.1.4.1.9.2.1.3.0 = ', '')
+                    output_list.append(hostname_output)
+                    self.reports_c1 = False
+                    #messagebox.showinfo("report c1", "callback complete")
+
+                while self.reports_c2:
+                    output_list.append(ipaddr)
+                    #messagebox.showinfo("report c2", "callback complete")
+                    self.reports_c2 = False
+
+                while self.reports_c3:
+                    # Serial Number MIB + output processing
+                    serial_mib = self.snmp_process((str(ipaddr)), '1.3.6.1.2.1.47.1.1.1.1.11')
+                    serial_output = serial_mib.replace('1.3.6.1.2.1.47.1.1.1.1.11.1 = ', '')
+                    output_list.append(serial_output)
+                    self.reports_c3 = False
+                    #messagebox.showinfo("report c3", "callback complete")
+
+                while self.reports_c4:
+                    # Version MIB + output processing
+                    version_mib = self.snmp_process((str(ipaddr)), '1.3.6.1.2.1.1.1')
+                    version_match = re.findall('Cisco.+', version_mib)
+                    version_clean = str(version_match)[1:-1]
+                    version_strip = version_clean.strip("'")
+                    version_list = version_strip.split(', ')
+                    final_list = output_list + version_list
+                    self.reports_c4 = False
+                    #messagebox.showinfo("report c4", "callback complete")
+
+            #final_list = output_list + version_list
+
+            # Write CSV File
+            csv_pre = self.txtbox_output.get("1.0", END)
+            csv_post = '/home/steve/Documents/output.csv'
+            csv_write = open(csv_post, 'a', newline='')
+        with csv_write:
+            write = csv.writer(csv_write)
+            write.writerow(final_list)
+            csv_write.close()
+            #messagebox.showinfo("report csv", "callback complete")
+
+        #messagebox.showinfo("Report Complete")
+
 app = NetMain()
