@@ -1,0 +1,29 @@
+$computers = Import-Csv -Path "C:\path\to\computers.csv"
+$outputPath = "C:\path\to\output.csv"
+
+$results = @()
+
+foreach ($computer in $computers) {
+    $computerName = $computer.ComputerName
+    Write-Host "Pinging $computerName..."
+    if (Test-Connection -ComputerName $computerName -Count 1 -Quiet) {
+        Write-Host "$computerName is reachable. Running gpupdate /force..."
+        $gpupdateOutput = Invoke-Command -ComputerName $computerName -ScriptBlock {
+            gpupdate /force
+        }
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "$computerName GP update was successful."
+            $result = New-Object PSObject -Property @{
+                ComputerName = $computerName
+                Result = "Success"
+            }
+            $results += $result
+        } else {
+            Write-Host "$computerName GP update failed."
+        }
+    } else {
+        Write-Host "$computerName is not reachable. Skipping gpupdate /force..."
+    }
+}
+
+$results | Export-Csv -Path $outputPath -NoTypeInformation
