@@ -3,27 +3,31 @@ $outputPath = "C:\path\to\output.csv"
 
 $results = @()
 
+$successOutputPath = "C:\path\to\success.csv"
+$successResults = @()
+
 foreach ($computer in $computers) {
     $computerName = $computer.ComputerName
     Write-Host "Pinging $computerName..."
     if (Test-Connection -ComputerName $computerName -Count 1 -Quiet) {
         Write-Host "$computerName is reachable. Running gpupdate /force..."
-        $gpupdateOutput = Invoke-Command -ComputerName $computerName -ScriptBlock {
+        Invoke-Command -ComputerName $computerName -ScriptBlock {
             gpupdate /force
         }
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "$computerName GP update was successful."
-            $result = New-Object PSObject -Property @{
-                ComputerName = $computerName
-                Result = "Success"
-            }
-            $results += $result
-        } else {
-            Write-Host "$computerName GP update failed."
+        Write-Host "$computerName GP update was attempted."
+        $result = New-Object PSObject -Property @{
+            ComputerName = $computerName
+            Result = "Attempted"
         }
+        $successResult = New-Object PSObject -Property @{
+            ComputerName = $computerName
+        }
+        $results += $result
+        $successResults += $successResult
     } else {
         Write-Host "$computerName is not reachable. Skipping gpupdate /force..."
     }
 }
 
 $results | Export-Csv -Path $outputPath -NoTypeInformation
+$successResults | Export-Csv -Path $successOutputPath -NoTypeInformation
