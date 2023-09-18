@@ -1,0 +1,87 @@
+function Get-IPRange {
+    param (
+        [string]$NetworkAddress,
+        [int]$CIDR
+    )
+
+    # Calculate the subnet mask
+    $SubnetMask = [System.Net.IPAddress]::Parse("255.255.255.255").Address -shl (32 - $CIDR)
+
+    # Convert the network address to an IPAddress object
+    $NetworkIP = [System.Net.IPAddress]::Parse($NetworkAddress)
+
+    # Calculate the network address
+    $Network = [System.Net.IPAddress]::new($NetworkIP.Address -band $SubnetMask, $NetworkIP.AddressFamily)
+
+    # Calculate the broadcast address
+    $Broadcast = [System.Net.IPAddress]::new($NetworkIP.Address -bor (-bnot $SubnetMask), $NetworkIP.AddressFamily)
+
+    # Generate the IP range
+    $Range = $Network..$Broadcast
+
+    return $Range
+}
+
+# Define the network address and CIDR notation
+$NetworkAddress = "192.168.1.0"
+$CIDR = 24
+
+# Get the IP range
+$IPRange = Get-IPRange -NetworkAddress $NetworkAddress -CIDR $CIDR
+
+# Initialize an array to store responding IP addresses
+$RespondingIPs = @()
+
+# Ping each IP address in the range and create the "RespondingIPs.csv" file
+$IPRange | ForEach-Object {
+    $IPAddress = $_.ToString()
+    $PingResult = Test-Connection -ComputerName $IPAddress -Count 1 -ErrorAction SilentlyContinue
+
+    if ($PingResult -ne $null) {
+        Write-Host "Ping to $IPAddress successful."
+        $RespondingIPs += [PSCustomObject]@{
+            IPAddress = $IPAddress
+        }
+    } else {
+        Write-Host "Ping to $IPAddress failed."
+    }
+}
+
+# Export the responding IP addresses to a CSV file
+$RespondingIPs | Export-Csv -Path "RespondingIPs.csv" -NoTypeInformation
+
+# Load the CSV file containing responding IP addresses
+$RespondingIPs = Import-Csv -Path "RespondingIPs.csv"
+
+# Load the CSV file containing other IP addresses to check
+$OtherIPs = Import-Csv -Path "OtherIPs.csv"
+
+# Initialize an array to store matching IP addresses
+$MatchingIPs = @()
+
+# Initialize an array to store not found IP addresses
+$NotFoundIPs = @()
+
+# Iterate through the responding IP addresses and check if they are in the other CSV file
+foreach ($RespondingIP in $RespondingIPs) {
+    $IPAddress = $RespondingIP.IPAddress
+
+    # Check if the responding IP address is present in the other CSV file
+    $Match = $OtherIPs | Where-Object { $_.IPAddress -eq $IPAddress }
+
+    if ($Match -ne $null) {
+        $MatchingIPs += $IPAddress
+    } else {
+        $NotFoundIPs += [PSCustomObject]@{
+            IPAddress = $IPAddress
+        }
+    }
+}
+
+# Output the matching IP addresses
+$MatchingIPs | ForEach-Object {
+    Write-Host "Matching IP Address: $_"
+}
+
+# Export the not found IP addresses to a separate CSV file
+$NotFoundIPs | Export-Csv -Path "NotFoundIPs.csv" -NoTypeInformation
