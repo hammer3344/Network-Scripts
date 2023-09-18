@@ -16,10 +16,14 @@ foreach ($IPAddressEntry in $IPAddresses) {
 
     if ($PingResult -ne $null) {
         Write-Host "Ping to $IPAddress successful."
-        $RespondingIPs += $IPAddress
+        $RespondingIPs += [PSCustomObject]@{
+            IPAddress = $IPAddress
+        }
     } else {
         Write-Host "Ping to $IPAddress failed."
-        $NotFoundIPs += $IPAddress
+        $NotFoundIPs += [PSCustomObject]@{
+            IPAddress = $IPAddress
+        }
     }
 }
 
