@@ -1,0 +1,24 @@
+# Define the paths to the CSV files
+$CSV1Path = "ReferenceCSV1.csv"
+$CSV2Path = "ReferenceCSV2.csv"
+
+# Load the CSV files into variables
+$CSV1 = Import-Csv -Path $CSV1Path
+$CSV2 = Import-Csv -Path $CSV2Path
+
+# Extract IP addresses from both CSV files
+$IPsInCSV1 = $CSV1 | Select-Object -ExpandProperty ipAddress
+$IPsInCSV2 = $CSV2 | Select-Object -ExpandProperty ipAddress
+
+# Compare IP addresses and find those that are in CSV1 but not in CSV2
+$IPsNotFoundInCSV2 = $IPsInCSV1 | Where-Object { $_ -notin $IPsInCSV2 }
+
+# Create a new CSV with the IP addresses not found in CSV2
+$OutputCSVPath = "IPsNotFoundInCSV2.csv"
+$IPsNotFoundInCSV2 | ForEach-Object {
+    [PSCustomObject]@{
+        ipAddress = $_
+    }
+} | Export-Csv -Path $OutputCSVPath -NoTypeInformation
+
+Write-Host "IP addresses not found in CSV2 have been saved to $OutputCSVPath."
