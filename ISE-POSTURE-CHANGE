@@ -1,0 +1,134 @@
+#######Enable FORM drawing
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+
+############ CHANGE ME WHEN TIME FOR DEPLOYMENT
+$destination = 'D:\ISE Posture'
+
+
+########### RESTART FUNCTION
+function Restart-System {
+    $form_1 = New-Object System.Windows.Forms.Form
+    $form_1.Text = 'Restart Required'
+    $form_1.Size = New-Object System.Drawing.Size(400,150)
+    $form_1.StartPosition = 'CenterScreen'
+
+    	##Restart button
+	$RestartB1 = New-Object System.Windows.Forms.Button
+	$RestartB1.Location = New-Object System.Drawing.Point(215,75)
+	$RestartB1.Size = New-Object System.Drawing.Size(75,23)
+	$RestartB1.Text = 'Restart'
+    $RestartB1.Add_Click({Restart-Computer -Force})
+	$form_1.controls.add($RestartB1)
+
+	############Cancel button
+	$CancelButton_1 = New-Object System.Windows.Forms.Button
+	$CancelButton_1.Location = New-Object System.Drawing.Point(295,75)
+	$CancelButton_1.Size = New-Object System.Drawing.Size(75,23)
+	$CancelButton_1.Text = 'Cancel'
+	$CancelButton_1.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+	$form_1.CancelButton = $CancelButton_1
+	$form_1.controls.add($CancelButton_1)
+
+    ############RESTART LABEL
+    $Label_1 = New-Object System.Windows.Forms.Label
+    $Label_1.Location = New-Object System.Drawing.Size(10,10)
+    $Label_1.Size = New-Object System.Drawing.Size(300,15)
+    $Label_1.Text = "A system restart is required to complete this process."
+    $form_1.controls.add($label_1)
+
+    $form_1.add_shown({$form_1.activate()})
+    $form_1.Topmost = $true
+    $result = $form_1.ShowDialog()
+
+    }
+
+    ########## FILE COPY FUNCTION
+
+function Copy_files {
+    param($source)
+    $files = 'ISEPosture.json','ConnectionData.xml','ISEPostureCFG.xml'
+
+        foreach ($file in $files) {
+                $source_file = $source + $file
+                Cp $source_file -Destination 'D:ISE Posture\'
+                                  }
+                    }
+
+#################### GUI BODY
+###Form baseline
+$form = New-Object System.Windows.Forms.Form
+$form.Text = 'ISE Base Selection Tool'
+$form.Size = New-Object System.Drawing.Size(400,150)
+$form.StartPosition = 'CenterScreen'
+
+
+	##Search button
+	$OKButton = New-Object System.Windows.Forms.Button
+	$OKButton.Location = New-Object System.Drawing.Point(215,75)
+	$OKButton.Size = New-Object System.Drawing.Size(75,23)
+	$OKButton.Text = 'Apply'
+	$OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+	$form.AcceptButton = $OKButton
+	$form.controls.add($OKButton)
+
+	
+	############Cancel button
+	$CancelButton = New-Object System.Windows.Forms.Button
+	$CancelButton.Location = New-Object System.Drawing.Point(295,75)
+	$CancelButton.Size = New-Object System.Drawing.Size(75,23)
+	$CancelButton.Text = 'Cancel'
+	$CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+	$form.CancelButton = $CancelButton
+	$form.controls.add($CancelButton)
+
+  
+#####RADIO BUTTON FIELDS
+
+	##############Radio title holder
+	$RadioText = New-Object “System.Windows.Forms.Label”;
+	$RadioText.Left = 10;
+	$RadioText.Top = 5;
+	$RadioText.Text = 'Select Your Current Location'
+	$RadioText.Width = 200;
+	$form.controls.add($RadioText)
+	
+		$ButtonR1 = New-Object System.Windows.Forms.RadioButton
+		$ButtonR1.Location = '35,35'
+		$ButtonR1.size = '100,15'
+		$ButtonR1.Checked = $false 
+		$ButtonR1.Text = "LOCATION 1"
+		$ButtonR1.Width = 200;
+		$form.controls.add($ButtonR1)
+ 
+ 		$ButtonR2 = New-Object System.Windows.Forms.RadioButton
+		$ButtonR2.Location = '35,55'
+		$ButtonR2.size = '100,20'
+		$ButtonR2.Checked = $false
+		$ButtonR2.Text = "LOCATION 2"
+		$ButtonR2.Width = 200;
+		$form.controls.add($ButtonR2)
+
+
+############ Add all the Form controls on one line 
+
+$form.add_shown({$form.activate()})
+$form.Topmost = $true
+$result = $form.ShowDialog()
+
+
+
+    ###Execute Script
+
+		if ($ButtonR1.Checked){  
+            Copy_files -source "\\INSERT SERVER LOCATION"
+            Restart-System
+                              }
+			
+		elseif ($ButtonR2.Checked){
+                    Copy_files -source "INSERT SERVER LOCATION"
+                    Restart-System
+                                  }
+			
+		else
+			{return(0)}
