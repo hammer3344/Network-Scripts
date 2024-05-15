@@ -1,0 +1,111 @@
+#V-215833-1: XE - Exec-Timeout (CON)
+#V-215688-1: IOS - Exec-Timeout (CON)
+
+        $Pattern_215833_1 = $hostname + '.+CISCO-RTR-V-215833-1=Passed'
+        $V215833_Complete = $hostname + ' Exec-timeout check complete (Console). Reference number: 00021-1'
+        $V215833_Open = '<!--215833--><STATUS>Open</STATUS>'
+        $V215688_Open = '<!--215688--><STATUS>Open</STATUS>'
+        $V215833_NAF = '<!--215833--><STATUS>NotAFinding</STATUS>'
+        $V215688_NAF = '<!--215688--><STATUS>NotAFinding</STATUS>'
+
+    
+    if(import-csv $report | Select-Object 'NodeName','CANNON CISCO-RTR-V-215833-1' | select-string -Pattern $Pattern_215833_1 -Quiet) {
+        (Get-Content $checklist_named) -replace $V215833_Open,$V215833_NAF |
+        Set-content $checklist_named
+
+        (Get-Content $checklist_named) -replace $V215688_Open,$V215688_NAF |
+        Set-content $checklist_named
+
+        write-host($V215833_Complete)
+        } else {
+        if ((Get-Content $check_ver -Raw) -match $IOS_XE) {
+            $logData = @(
+            [pscustomobject]@{
+            Name = $hostname
+            IPaddr = $checklist_ip_post
+            Type = "IOS-XE"
+	    Checklist = "Cisco XE RTR"
+            STIG = "CISC-ND-000720"
+            RuleID = "V-215833"
+            Status = "Open"
+            CAT = "Cat I"
+            Description = 'The Cisco router must be configured to terminate all network connections associated with device management after five minutes of inactivity.'
+                         }
+                    )
+            $logData | Export-Csv $env:userprofile\Desktop\STIG-FILES\STIG-OPEN\Open.csv -Append -NoTypeInformation
+        write-host($V215833_Complete)
+        } else {
+            $logData = @(
+            [pscustomobject]@{
+            Name = $hostname
+            IPaddr = $checklist_ip_post
+            Type = "IOS"
+	    Checklist = "Cisco IOS RTR"
+            STIG = "CISC-ND-000720"
+            RuleID = "V-215688"
+            Status = "Open"
+            CAT = "Cat I"
+            Description = 'The Cisco router must be configured to terminate all network connections associated with device management after five minutes of inactivity.'
+                         }
+                    )
+            $logData | Export-Csv $env:userprofile\Desktop\STIG-FILES\STIG-OPEN\Open.csv -Append -NoTypeInformation
+        write-host($V215833_Complete)
+            }
+        }
+
+#V-215833-2: XE - Exec-Timeout (VTY)
+#V-215688-2: XE - Exec-Timeout (VTY)
+
+
+
+        $Pattern_215833_2 = $hostname + '.+CISCO-RTR-V-215833-2=Passed'
+        $V215833_Complete = $hostname + ' Exec-timeout check complete (VTY). Reference number: 00021-2'
+        $V215833_Open = '<!--215833--><STATUS>Open</STATUS>'
+        $V215688_Open = '<!--215688--><STATUS>Open</STATUS>'
+        $V215833_NAF = '<!--215833--><STATUS>NotAFinding</STATUS>'
+        $V215688_NAF = '<!--215688--><STATUS>NotAFinding</STATUS>'
+
+    
+    if(import-csv $report | Select-Object 'NodeName','CANNON CISCO-RTR-V-215833-2' | select-string -Pattern $Pattern_215833_2 -Quiet) {
+        (Get-Content $checklist_named) -replace $V215833_Open,$V215833_NAF |
+        Set-content $checklist_named
+
+        (Get-Content $checklist_named) -replace $V215688_Open,$V215688_NAF |
+        Set-content $checklist_named
+
+        write-host($V215833_Complete)
+        } else {
+        if ((Get-Content $check_ver -Raw) -match $IOS_XE) {
+            $logData = @(
+            [pscustomobject]@{
+            Name = $hostname
+            IPaddr = $checklist_ip_post
+            Type = "IOS-XE"
+	    Checklist = "Cisco XE RTR"
+            STIG = "CISC-ND-000720"
+            RuleID = "V-215833"
+            Status = "Open"
+            CAT = "Cat I"
+            Description = 'The Cisco router must be configured to terminate all network connections associated with device management after five minutes of inactivity.'
+                         }
+                    )
+            $logData | Export-Csv $env:userprofile\Desktop\STIG-FILES\STIG-OPEN\Open.csv -Append -NoTypeInformation
+        write-host($V215833_Complete)
+        } else {
+            $logData = @(
+            [pscustomobject]@{
+            Name = $hostname
+            IPaddr = $checklist_ip_post
+            Type = "IOS"
+	    Checklist = "Cisco L2 Switch"
+            STIG = "CISC-ND-000720"
+            RuleID = "V-215688"
+            Status = "Open"
+            CAT = "Cat I"
+            Description = 'The Cisco router must be configured to terminate all network connections associated with device management after five minutes of inactivity.'
+                         }
+                    )
+            $logData | Export-Csv $env:userprofile\Desktop\STIG-FILES\STIG-OPEN\Open.csv -Append -NoTypeInformation
+        write-host($V215833_Complete)
+            }
+        }
