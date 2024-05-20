@@ -1,27 +1,56 @@
+# Define the path to your input and output XML files
+$inputFilePath = "path\to\your\document.anyextension"
+$outputFilePath = "path\to\your\modified_document.anyextension"
+
 # Load the XML document
-[xml]$xmlDocument = Get-Content -Path "path\to\your\document.xml"
+try {
+    [xml]$xmlDocument = Get-Content -Path $inputFilePath -ErrorAction Stop
+    Write-Host "XML document loaded successfully."
+} catch {
+    Write-Host "Failed to load XML document." -ForegroundColor Red
+    exit
+}
 
 # Iterate through each VULN node
-foreach ($vuln in $xmlDocument.SelectNodes("//VULN")) {
-    # Find the ATTRIBUTE_DATA node with the pattern V-XXXXXX
-    $attributeDataNode = $vuln.SelectSingleNode("ATTRIBUTE_DATA[starts-with(text(),'V-')]")
-    
-    if ($attributeDataNode) {
-        # Extract the number part
-        $vulnNumber = $attributeDataNode.InnerText -replace 'V-', ''
+$vulnNodes = $xmlDocument.SelectNodes("//VULN")
+if ($vulnNodes.Count -eq 0) {
+    Write-Host "No <VULN> nodes found." -ForegroundColor Yellow
+} else {
+    foreach ($vuln in $vulnNodes) {
+        # Find the ATTRIBUTE_DATA node with the pattern V-XXXXXX
+        $attributeDataNode = $vuln.SelectSingleNode("ATTRIBUTE_DATA[starts-with(text(),'V-')]")
         
-        # Create the XML comment
-        $xmlComment = $xmlDocument.CreateComment($vulnNumber)
-        
-        # Find the STATUS node
-        $statusNode = $vuln.SelectSingleNode("STATUS")
-        
-        if ($statusNode) {
-            # Insert the comment before the STATUS node
-            $vuln.InsertBefore($xmlComment, $statusNode)
+        if ($attributeDataNode) {
+            # Extract the number part
+            $vulnNumber = $attributeDataNode.InnerText -replace 'V-', ''
+            Write-Host "Found VULN number: $vulnNumber"
+
+            # Create the XML comment
+            $xmlComment = $xmlDocument.CreateComment($vulnNumber)
+
+            # Find the STATUS node
+            $statusNode = $vuln.SelectSingleNode("STATUS")
+
+            if ($statusNode) {
+                # Insert the comment before the STATUS node
+                $vuln.InsertBefore($xmlComment, $statusNode)
+                Write-Host "Inserted comment <!--$vulnNumber--> before <STATUS>."
+            } else {
+                Write-Host "No <STATUS> node found in current <VULN>."
+            }
+        } else {
+            Write-Host "No <ATTRIBUTE_DATA> node with pattern 'V-XXXXXX' found in current <VULN>."
         }
     }
 }
 
+# Output the modified XML to console for verification
+$xmlDocument.OuterXml
+
 # Save the modified XML document
-$xmlDocument.Save("path\to\your\modified_document.xml")
+try {
+    $xmlDocument.Save($outputFilePath)
+    Write-Host "Modified XML document saved successfully to $outputFilePath."
+} catch {
+    Write-Host "Failed to save modified XML document." -ForegroundColor Red
+}
