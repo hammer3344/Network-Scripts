@@ -2,7 +2,7 @@
 $inputFilePath = "path\to\your\document.anyextension"
 $outputFilePath = "path\to\your\modified_document.anyextension"
 
-# Load the XML document
+# Load the XML document content as a string to preserve formatting
 try {
     $xmlContent = Get-Content -Path $inputFilePath -Raw -ErrorAction Stop
     [xml]$xmlDocument = [xml]$xmlContent
@@ -17,16 +17,19 @@ $xmlDoc = New-Object System.Xml.XmlDocument
 $xmlDoc.PreserveWhitespace = $true
 $xmlDoc.LoadXml($xmlContent)
 
+# Regular expression pattern to match V-000000 to V-999999
+$pattern = '^V-\d{6}$'
+
 # Iterate through each VULN node
 $vulnNodes = $xmlDoc.SelectNodes("//VULN")
 if ($vulnNodes.Count -eq 0) {
     Write-Host "No <VULN> nodes found." -ForegroundColor Yellow
 } else {
     foreach ($vuln in $vulnNodes) {
-        # Find the ATTRIBUTE_DATA node with the pattern V-XXXXXX
+        # Find the ATTRIBUTE_DATA node with the specific pattern
         $attributeDataNode = $vuln.SelectSingleNode("ATTRIBUTE_DATA[starts-with(text(),'V-')]")
         
-        if ($attributeDataNode) {
+        if ($attributeDataNode -and $attributeDataNode.InnerText -match $pattern) {
             # Extract the number part
             $vulnNumber = $attributeDataNode.InnerText -replace 'V-', ''
             Write-Host "Found VULN number: $vulnNumber"
@@ -45,7 +48,7 @@ if ($vulnNodes.Count -eq 0) {
                 Write-Host "No <STATUS> node found in current <VULN>."
             }
         } else {
-            Write-Host "No <ATTRIBUTE_DATA> node with pattern 'V-XXXXXX' found in current <VULN>."
+            Write-Host "No <ATTRIBUTE_DATA> node with valid pattern 'V-000000 to V-999999' found in current <VULN>."
         }
     }
 }
