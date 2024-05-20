@@ -4,15 +4,21 @@ $outputFilePath = "path\to\your\modified_document.anyextension"
 
 # Load the XML document
 try {
-    [xml]$xmlDocument = Get-Content -Path $inputFilePath -ErrorAction Stop
+    $xmlContent = Get-Content -Path $inputFilePath -Raw -ErrorAction Stop
+    [xml]$xmlDocument = [xml]$xmlContent
     Write-Host "XML document loaded successfully."
 } catch {
     Write-Host "Failed to load XML document." -ForegroundColor Red
     exit
 }
 
+# Create an XmlDocument to manipulate the XML content
+$xmlDoc = New-Object System.Xml.XmlDocument
+$xmlDoc.PreserveWhitespace = $true
+$xmlDoc.LoadXml($xmlContent)
+
 # Iterate through each VULN node
-$vulnNodes = $xmlDocument.SelectNodes("//VULN")
+$vulnNodes = $xmlDoc.SelectNodes("//VULN")
 if ($vulnNodes.Count -eq 0) {
     Write-Host "No <VULN> nodes found." -ForegroundColor Yellow
 } else {
@@ -26,7 +32,7 @@ if ($vulnNodes.Count -eq 0) {
             Write-Host "Found VULN number: $vulnNumber"
 
             # Create the XML comment
-            $xmlComment = $xmlDocument.CreateComment($vulnNumber)
+            $xmlComment = $xmlDoc.CreateComment($vulnNumber)
 
             # Find the STATUS node
             $statusNode = $vuln.SelectSingleNode("STATUS")
@@ -44,12 +50,17 @@ if ($vulnNodes.Count -eq 0) {
     }
 }
 
-# Output the modified XML to console for verification
-$xmlDocument.OuterXml
-
-# Save the modified XML document
+# Save the modified XML document with original formatting
 try {
-    $xmlDocument.Save($outputFilePath)
+    $xmlWriterSettings = New-Object System.Xml.XmlWriterSettings
+    $xmlWriterSettings.Indent = $false
+    $xmlWriterSettings.NewLineHandling = "None"
+    $xmlWriterSettings.OmitXmlDeclaration = $xmlDoc.FirstChild.NodeType -ne [System.Xml.XmlNodeType]::XmlDeclaration
+
+    $xmlWriter = [System.Xml.XmlWriter]::Create($outputFilePath, $xmlWriterSettings)
+    $xmlDoc.Save($xmlWriter)
+    $xmlWriter.Close()
+
     Write-Host "Modified XML document saved successfully to $outputFilePath."
 } catch {
     Write-Host "Failed to save modified XML document." -ForegroundColor Red
