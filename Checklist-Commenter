@@ -1,70 +1,25 @@
-# Define the path to your input and output XML files
-$inputFilePath = "path\to\your\document.anyextension"
-$outputFilePath = "path\to\your\modified_document.anyextension"
+# UPDATE FILE. 
+$xmlFilePath = "\PATH\TO\FILE.xml"
 
-# Load the XML document content as a string to preserve formatting
-try {
-    $xmlContent = Get-Content -Path $inputFilePath -Raw -ErrorAction Stop
-    [xml]$xmlDocument = [xml]$xmlContent
-    Write-Host "XML document loaded successfully."
-} catch {
-    Write-Host "Failed to load XML document." -ForegroundColor Red
-    exit
-}
+# Read the content of the XML file
+$xmlContent = Get-Content -Path $xmlFilePath -Raw
 
-# Create an XmlDocument to manipulate the XML content
-$xmlDoc = New-Object System.Xml.XmlDocument
-$xmlDoc.PreserveWhitespace = $true
-$xmlDoc.LoadXml($xmlContent)
-
-# Regular expression pattern to match V-000000 to V-999999
-$pattern = '^V-\d{6}$'
-
-# Iterate through each VULN node
-$vulnNodes = $xmlDoc.SelectNodes("//VULN")
-if ($vulnNodes.Count -eq 0) {
-    Write-Host "No <VULN> nodes found." -ForegroundColor Yellow
-} else {
-    foreach ($vuln in $vulnNodes) {
-        # Find the ATTRIBUTE_DATA node with the specific pattern
-        $attributeDataNode = $vuln.SelectSingleNode("ATTRIBUTE_DATA[starts-with(text(),'V-')]")
-        
-        if ($attributeDataNode -and $attributeDataNode.InnerText -match $pattern) {
-            # Extract the number part
-            $vulnNumber = $attributeDataNode.InnerText -replace 'V-', ''
-            Write-Host "Found VULN number: $vulnNumber"
-
-            # Create the XML comment
-            $xmlComment = $xmlDoc.CreateComment($vulnNumber)
-
-            # Find the STATUS node
-            $statusNode = $vuln.SelectSingleNode("STATUS")
-
-            if ($statusNode) {
-                # Insert the comment before the STATUS node
-                $vuln.InsertBefore($xmlComment, $statusNode)
-                Write-Host "Inserted comment <!--$vulnNumber--> before <STATUS>."
-            } else {
-                Write-Host "No <STATUS> node found in current <VULN>."
-            }
-        } else {
-            Write-Host "No <ATTRIBUTE_DATA> node with valid pattern 'V-000000 to V-999999' found in current <VULN>."
-        }
+# Iterate through each <VULN> section
+$newXmlContent = $xmlContent -split '<VULN>' | ForEach-Object {
+    if ($_ -match '<ATTRIBUTE_DATA>\s*V-(\d{6})\s*</ATTRIBUTE_DATA>') {
+        $pattern = $matches[1]
+        $commentText = "<!--$pattern--><STATUS>"
+        $_ -replace '<STATUS>', $commentText
+    } else {
+        $_
     }
 }
 
-# Save the modified XML document with original formatting
-try {
-    $xmlWriterSettings = New-Object System.Xml.XmlWriterSettings
-    $xmlWriterSettings.Indent = $false
-    $xmlWriterSettings.NewLineHandling = "None"
-    $xmlWriterSettings.OmitXmlDeclaration = $xmlDoc.FirstChild.NodeType -ne [System.Xml.XmlNodeType]::XmlDeclaration
+# Join the modified <VULN> sections back into a single string
+$newXmlContent = $newXmlContent -join '<VULN>'
 
-    $xmlWriter = [System.Xml.XmlWriter]::Create($outputFilePath, $xmlWriterSettings)
-    $xmlDoc.Save($xmlWriter)
-    $xmlWriter.Close()
+# Save the modified XML back to the file
+Set-Content -Path $xmlFilePath -Value $newXmlContent
 
-    Write-Host "Modified XML document saved successfully to $outputFilePath."
-} catch {
-    Write-Host "Failed to save modified XML document." -ForegroundColor Red
-}
+# Optional: Output the modified XML to the console
+$newXmlContent
