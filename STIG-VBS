@@ -1,0 +1,62 @@
+Sub Main
+    ' Declare variables
+    Dim strCommand, strOutput, lines, i, line, regex, matches, match, interfaceName
+
+    ' Set the command to show interface switchport
+    strCommand = "show int switchport | inc Name:|Administrative Mode" & vbCr
+
+    ' Wait for the command prompt
+    crt.Screen.WaitForString "#"
+
+    ' Send the command
+    crt.Screen.Send strCommand
+
+    ' Wait for the command to complete
+    crt.Sleep 2000
+
+    ' Read the screen contents
+    strOutput = crt.Screen.ReadString("#")
+
+    ' Split the output into lines
+    lines = Split(strOutput, vbCrLf)
+
+    ' Initialize regex object for interface name matching
+    Set regex = New RegExp
+    regex.IgnoreCase = True
+    regex.Global = True
+    regex.Pattern = "(Gi|Te|Fe|Fo|App)[0-9/]+"
+
+    ' Loop through lines and process the output
+    For i = 0 To UBound(lines)
+        line = Trim(lines(i))
+        
+        ' Check if the line contains an interface name
+        If InStr(line, "Name:") > 0 Then
+            Set matches = regex.Execute(line)
+            If matches.Count > 0 Then
+                interfaceName = matches(0).Value
+                
+                ' Check the next line for Administrative Mode
+                If i + 1 <= UBound(lines) And InStr(lines(i + 1), "Administrative Mode") > 0 Then
+                    If InStr(lines(i + 1), "static access") > 0 Then
+                        ' Execute the show run interface command for the matched interface
+                        crt.Screen.Send "show run interface " & interfaceName & vbCr
+                        
+                        ' Wait for the command to complete
+                        crt.Sleep 2000
+                        
+                        ' Read the output
+                        Dim runOutput
+                        runOutput = crt.Screen.ReadString("#")
+                        
+                        ' Display or log the output as needed
+                        crt.Dialog.MessageBox "Interface: " & interfaceName & vbCrLf & runOutput
+                    End If
+                End If
+            End If
+        End If
+    Next
+End Sub
+
+' Call the main subroutine
+Main
