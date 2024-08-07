@@ -1,0 +1,63 @@
+# Define the columns
+$columns = 'Hostname', 'Version', 'Release', 'Cat1Open', 'Cat1Total', 'Cat2Open', 'Cat2Total', 'Cat3Open', 'Cat3Total'
+
+# Create an empty array to hold the data
+$data = @()
+
+# Example: Add a new row to the data
+$row = New-Object PSObject
+$row | Add-Member -MemberType NoteProperty -Name 'Hostname' -Value $hostname
+
+# Check the version
+$check_ver = "Path to your version file"
+$IOS_XE = "Your IOS XE version"
+
+if ((Get-Content $check_ver -Raw) -match $IOS_XE) {
+    $row | Add-Member -MemberType NoteProperty -Name 'Version' -Value 'placeholder number'
+    $row | Add-Member -MemberType NoteProperty -Name 'Release' -Value 'placeholder number'
+    $row | Add-Member -MemberType NoteProperty -Name 'Cat1Open' -Value 0
+    $row | Add-Member -MemberType NoteProperty -Name 'Cat1Total' -Value 64
+    $row | Add-Member -MemberType NoteProperty -Name 'Cat2Open' -Value 0
+    $row | Add-Member -MemberType NoteProperty -Name 'Cat2Total' -Value 64
+    $row | Add-Member -MemberType NoteProperty -Name 'Cat3Open' -Value 0
+    $row | Add-Member -MemberType NoteProperty -Name 'Cat3Total' -Value 64
+} else {
+    $row | Add-Member -MemberType NoteProperty -Name 'Version' -Value 'placeholder number'
+    $row | Add-Member -MemberType NoteProperty -Name 'Release' -Value 'placeholder number'
+    $row | Add-Member -MemberType NoteProperty -Name 'Cat1Open' -Value 0
+    $row | Add-Member -MemberType NoteProperty -Name 'Cat1Total' -Value 65
+    $row | Add-Member -MemberType NoteProperty -Name 'Cat2Open' -Value 0
+    $row | Add-Member -MemberType NoteProperty -Name 'Cat2Total' -Value 65
+    $row | Add-Member -MemberType NoteProperty -Name 'Cat3Open' -Value 0
+    $row | Add-Member -MemberType NoteProperty -Name 'Cat3Total' -Value 65
+}
+
+# Add the row to the data array
+$data += $row
+
+# Export the data to a CSV file
+$data | Export-Csv -Path 'C:\path\to\your\file.csv' -NoTypeInformation
+
+
+
+
+
+################# RULE
+# Import the CSV file
+$data = Import-Csv -Path 'C:\path\to\your\file.csv'
+
+# The hostname you're looking for
+$hostname = 'target-hostname'
+
+# Iterate over each row in the CSV
+foreach ($row in $data) {
+    # Check if the hostname in the current row matches the target
+    if ($row.Hostname -eq $hostname) {
+        # Increment the field by 1
+        $row.Field = [int]$row.Field + 1
+    }
+}
+
+# Export the data back to the CSV
+$data | Export-Csv -Path 'C:\path\to\your\file.csv' -NoTypeInformation
+
